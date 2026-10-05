@@ -1,0 +1,12 @@
+.env
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+api-gateway/node_modules/
+api-gateway/dist/
+api-gateway/coverage/
+
+# Assessment brief (not part of the submission)
+*.pdf
