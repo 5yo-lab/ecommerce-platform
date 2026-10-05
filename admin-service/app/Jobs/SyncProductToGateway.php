@@ -14,7 +14,6 @@ class SyncProductToGateway implements ShouldBeUnique, ShouldQueue
 
     public int $tries = 5;
 
-    /** Collapse bursts (e.g. product + inventory saved together) into one webhook per product. */
     public int $uniqueFor = 10;
 
     public function __construct(
@@ -22,9 +21,6 @@ class SyncProductToGateway implements ShouldBeUnique, ShouldQueue
         public readonly string $event,
     ) {}
 
-    /**
-     * @return list<int>
-     */
     public function backoff(): array
     {
         return [5, 15, 60, 300];

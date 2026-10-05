@@ -11,11 +11,6 @@ class SalesReportService
 {
     public const PERIODS = ['daily', 'weekly', 'monthly'];
 
-    /**
-     * Revenue grouped by day, ISO week or month for revenue-bearing orders (cancelled/pending excluded).
-     *
-     * @return array{rows: Collection<int, object{period: string, orders: int, revenue: string, average: string}>, totals: array{orders: int, revenue: float, average: float}, from: CarbonImmutable, to: CarbonImmutable, period: string}
-     */
     public function build(string $period, ?string $from, ?string $to): array
     {
         $to = $to ? CarbonImmutable::parse($to)->endOfDay() : CarbonImmutable::now()->endOfDay();

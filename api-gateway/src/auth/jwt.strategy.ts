@@ -31,7 +31,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: JwtPayload): Promise<AuthUser> {
-    // Token issued by either service: re-check the user so deleted or demoted users lose access immediately
     const user = await this.users.findById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('User no longer exists');

@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-/** Table owned by Laravel migrations; mapped here for reads and product writes. */
 @Entity('categories')
 export class Category {
   @PrimaryGeneratedColumn({ type: 'bigint', unsigned: true })

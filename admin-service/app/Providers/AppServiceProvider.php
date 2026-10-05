@@ -29,7 +29,6 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Stateless guard for /admin/api/*: accepts the same JWT the NestJS API issues (Bearer header or shared cookie)
         Auth::viaRequest('jwt', function (Request $request): ?User {
             $jwt = app(JwtService::class);
             $claims = $jwt->decode($jwt->tokenFromRequest($request));

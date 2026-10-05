@@ -12,9 +12,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-/**
- * The `users` table is owned by the NestJS migrations (central user service).
- */
 #[Fillable(['name', 'email', 'password', 'role'])]
 #[Hidden(['password'])]
 class User extends Authenticatable
@@ -28,7 +25,6 @@ class User extends Authenticatable
 
     public const ROLES = [self::ROLE_CUSTOMER, self::ROLE_ADMIN];
 
-    /** The shared users table has no remember_token column; sessions are tied to the shared JWT instead. */
     protected $rememberTokenName = '';
 
     protected function casts(): array

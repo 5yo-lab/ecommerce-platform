@@ -10,7 +10,6 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { Roles } from './roles.decorator';
 
-/** Requires a valid JWT; when roles are given, the user must have one of them. */
 export function Auth(...roles: UserRole[]) {
   return applyDecorators(
     Roles(...roles),

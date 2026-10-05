@@ -5,10 +5,6 @@ namespace App\Observers;
 use App\Jobs\SyncProductToGateway;
 use App\Models\Product;
 
-/**
- * Notifies the NestJS gateway (queued webhook, API-key authenticated) whenever the catalogue changes.
- * Dispatched after commit so the gateway never reads a row that was rolled back.
- */
 class ProductObserver
 {
     public function created(Product $product): void

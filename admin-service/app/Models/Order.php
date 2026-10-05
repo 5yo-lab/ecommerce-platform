@@ -9,9 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * The `orders` table is owned by the NestJS migrations; orders are placed through the API.
- */
 #[Fillable(['order_number', 'user_id', 'status', 'payment_status', 'payment_reference', 'subtotal', 'total'])]
 class Order extends Model
 {
@@ -21,7 +18,6 @@ class Order extends Model
 
     public const PAYMENT_STATUSES = ['pending', 'paid', 'failed', 'refunded'];
 
-    /** Allowed status changes; delivered and cancelled are final. */
     public const TRANSITIONS = [
         'pending' => ['paid', 'cancelled'],
         'paid' => ['processing', 'cancelled'],
@@ -31,7 +27,6 @@ class Order extends Model
         'cancelled' => [],
     ];
 
-    /** Orders that count as revenue in metrics and reports. */
     public const REVENUE_STATUSES = ['paid', 'processing', 'shipped', 'delivered'];
 
     protected function casts(): array

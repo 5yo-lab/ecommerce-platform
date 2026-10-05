@@ -13,7 +13,6 @@ import {
 import { Category } from './category.entity';
 import { Inventory } from './inventory.entity';
 
-/** Table owned by Laravel migrations; mapped here for the public catalogue API. */
 @Entity('products')
 @Index(['categoryId', 'price'])
 export class Product {

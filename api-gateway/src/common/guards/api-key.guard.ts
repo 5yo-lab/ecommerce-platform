@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { timingSafeEqual } from 'crypto';
 
-/** Service-to-service authentication for calls from the Laravel admin service. */
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
   private readonly expected: Buffer;

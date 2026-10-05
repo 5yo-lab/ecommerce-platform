@@ -8,7 +8,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 
-/** Generates the catalogue thumbnail off the request cycle after an image upload. */
 class ProcessProductImage implements ShouldQueue
 {
     use Queueable;
@@ -26,7 +25,6 @@ class ProcessProductImage implements ShouldQueue
     {
         $product = Product::withTrashed()->find($this->productId);
 
-        // A newer upload replaced this image while the job was waiting
         if (! $product || $product->image_path !== $this->imagePath) {
             return;
         }

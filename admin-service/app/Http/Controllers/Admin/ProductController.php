@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProductController extends Controller
@@ -51,7 +52,7 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request): RedirectResponse
     {
-        $imagePath = $request->file('image')?->store('products', 'public');
+        $imagePath = $this->storeImage($request);
 
         $product = DB::transaction(function () use ($request, $imagePath) {
             $product = Product::create($request->productData() + ['image_path' => $imagePath]);
@@ -77,7 +78,7 @@ class ProductController extends Controller
 
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
-        $newImage = $request->file('image')?->store('products', 'public');
+        $newImage = $this->storeImage($request);
         $oldFiles = array_filter([$product->image_path, $product->thumbnail_path]);
 
         DB::transaction(function () use ($request, $product, $newImage) {
@@ -139,11 +140,22 @@ class ProductController extends Controller
 
     public function import(ImportProductsRequest $request): RedirectResponse
     {
-        $path = $request->file('file')->store('imports', 'local');
+        $path = $request->file('file')->store('imports', 'local')
+            ?: throw new RuntimeException('The uploaded CSV could not be saved.');
         Cache::forget(ImportProducts::summaryKey($request->user()->id));
 
         ImportProducts::dispatch($path, $request->user()->id);
 
         return back()->with('status', 'Import queued. Refresh this page in a moment to see the summary.');
+    }
+
+    private function storeImage(ProductRequest $request): ?string
+    {
+        if (! $request->hasFile('image')) {
+            return null;
+        }
+
+        return $request->file('image')->store('products', 'public')
+            ?: throw new RuntimeException('The uploaded image could not be saved.');
     }
 }

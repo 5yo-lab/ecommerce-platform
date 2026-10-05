@@ -45,11 +45,6 @@ export class OrdersService {
     private readonly products: ProductsService,
   ) {}
 
-  /**
-   * 1. validate  2. check inventory  3. charge (mock)  4. persist + update inventory  5. queue email.
-   * Steps 2-4 run in one transaction with the inventory rows locked, so concurrent orders cannot oversell;
-   * the email is queued only after commit so it never announces an order that was rolled back.
-   */
   async create(user: AuthUser, dto: CreateOrderDto): Promise<OrderResponse> {
     const requested = this.mergeItems(dto);
     const productIds = [...requested.keys()];
@@ -195,7 +190,6 @@ export class OrdersService {
         },
       );
     } catch (error) {
-      // The order is already committed; a queue outage must not turn a successful purchase into an error
       this.logger.error(
         `Failed to queue confirmation email for ${order.orderNumber}`,
         error instanceof Error ? error.stack : String(error),

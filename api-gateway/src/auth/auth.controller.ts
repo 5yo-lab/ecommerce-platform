@@ -60,7 +60,6 @@ export class AuthController {
     return user;
   }
 
-  /** Same cookie name/path Laravel uses, so one login is shared by both services behind Nginx. */
   private setSessionCookie(res: Response, result: AuthResult): void {
     res.cookie(ACCESS_TOKEN_COOKIE, result.accessToken, {
       ...this.cookieOptions(),

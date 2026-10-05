@@ -8,9 +8,6 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Cookie;
 use Throwable;
 
-/**
- * Verifies the HS256 tokens issued by the NestJS user service (same secret and issuer on both sides).
- */
 class JwtService
 {
     public function __construct(

@@ -10,6 +10,7 @@ x-admin-env: &admin-env
   APP_ENV: ${APP_ENV:-local}
   APP_DEBUG: ${APP_DEBUG:-true}
   APP_URL: ${APP_URL:-http://localhost:8080}
+  PHP_OPCACHE_VALIDATE_TIMESTAMPS: ${PHP_OPCACHE_VALIDATE_TIMESTAMPS:-1}
   DB_CONNECTION: mysql
   SESSION_DRIVER: database
   CACHE_STORE: redis
@@ -47,7 +48,6 @@ x-api-build: &api-build
   target: development
 
 services:
-  # ─── One-shot setup, runs in order on every `up` (all steps are idempotent) ──
   admin-assets:
     image: node:22-alpine
     working_dir: /app
@@ -64,7 +64,8 @@ services:
       sh -c "[ -f .env ] || cp .env.example .env;
       [ -f vendor/autoload.php ] || composer install --no-interaction --prefer-dist;
       grep -q '^APP_KEY=base64:' .env || php artisan key:generate --force;
-      php artisan migrate --force"
+      php artisan migrate --force;
+      chown -R www-data:www-data storage bootstrap/cache"
     volumes:
       - ./admin-service:/var/www/html
     environment: *admin-env
@@ -89,6 +90,7 @@ services:
 
   seed:
     build: *admin-build
+    user: www-data
     command: php artisan db:seed --force
     volumes:
       - ./admin-service:/var/www/html
@@ -99,7 +101,6 @@ services:
     networks:
       - ecommerce
 
-  # ─── Long-running services ───────────────────────────────────────────────────
   nginx:
     image: nginx:alpine
     ports:
@@ -117,6 +118,7 @@ services:
 
   admin:
     build: *admin-build
+    entrypoint: ["sh", "/var/www/html/docker/entrypoint.sh"]
     volumes:
       - ./admin-service:/var/www/html
     environment: *admin-env
@@ -132,13 +134,15 @@ services:
 
   admin-queue:
     build: *admin-build
-    command: php artisan queue:work redis --sleep=1 --tries=5 --max-time=3600
+    user: www-data
+    command: php artisan queue:work redis --sleep=1 --tries=5
+    restart: unless-stopped
     volumes:
       - ./admin-service:/var/www/html
     environment: *admin-env
     depends_on:
-      seed:
-        condition: service_completed_successfully
+      admin:
+        condition: service_started
       redis:
         condition: service_healthy
     networks:

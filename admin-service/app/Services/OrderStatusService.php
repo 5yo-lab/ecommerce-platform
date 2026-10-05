@@ -9,12 +9,6 @@ use Illuminate\Validation\ValidationException;
 
 class OrderStatusService
 {
-    /**
-     * Applies an allowed status transition. Cancelling returns stock and refunds a paid order,
-     * all in one transaction with the order and inventory rows locked against concurrent changes.
-     *
-     * @throws ValidationException
-     */
     public function transition(Order $order, string $status): Order
     {
         return DB::transaction(function () use ($order, $status) {

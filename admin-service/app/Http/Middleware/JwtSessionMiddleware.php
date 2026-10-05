@@ -9,11 +9,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-/**
- * Keeps the Laravel session in step with the shared JWT cookie:
- * - an admin who logged in through the NestJS API is signed in here automatically;
- * - when the token expires, is cleared (logout on either service) or belongs to someone else, the session ends.
- */
 class JwtSessionMiddleware
 {
     public function __construct(private readonly JwtService $jwt) {}

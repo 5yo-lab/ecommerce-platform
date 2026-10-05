@@ -9,6 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
+  app.enableCors({ origin: true, credentials: true });
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -23,14 +24,27 @@ async function bootstrap() {
     .setTitle('E-commerce API Gateway')
     .setDescription('Customer-facing REST API (products, orders, auth)')
     .setVersion('1.0')
+    .addServer('/', 'Current host')
     .addBearerAuth()
     .addCookieAuth('access_token')
     .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'api-key')
     .build();
   SwaggerModule.setup(
-    'api/docs',
+    'docs',
     app,
     SwaggerModule.createDocument(app, swaggerConfig),
+    {
+      useGlobalPrefix: true,
+      swaggerOptions: {
+        persistAuthorization: true,
+        withCredentials: true,
+        requestInterceptor: (req: { credentials?: string }) => {
+          req.credentials = 'include';
+
+          return req;
+        },
+      },
+    },
   );
 
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');

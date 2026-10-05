@@ -12,7 +12,6 @@ import { ApiKeyGuard } from '../common/guards/api-key.guard';
 import { ProductsService } from '../products/products.service';
 import { ProductSyncDto } from './dto/product-sync.dto';
 
-/** Service-to-service endpoints, reached over the Docker network only (Nginx blocks /api/internal/). */
 @ApiTags('internal')
 @ApiSecurity('api-key')
 @UseGuards(ApiKeyGuard)

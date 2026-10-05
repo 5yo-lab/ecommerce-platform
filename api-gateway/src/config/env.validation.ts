@@ -16,7 +16,6 @@ export const envValidationSchema = Joi.object({
   REDIS_PORT: Joi.number().default(6379),
   PRODUCT_CACHE_TTL: Joi.number().default(300),
 
-  // HS256 needs a 256-bit key; the Laravel side (firebase/php-jwt) rejects shorter secrets.
   JWT_SECRET: Joi.string().min(32).required(),
   JWT_TTL: Joi.number().default(3600),
   JWT_ISSUER: Joi.string().default('ecommerce-platform'),

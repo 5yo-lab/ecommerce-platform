@@ -203,12 +203,14 @@ describe('ProductsService', () => {
   });
 
   describe('syncFromAdmin', () => {
-    it('invalidates the cache and re-warms the synced product', async () => {
+    it('invalidates the cache and re-warms the synced product and default list', async () => {
       store.set('products:version', 'old');
       productsRepo.findOne.mockResolvedValue(product());
+      productsRepo.createQueryBuilder.mockReturnValue(createQueryBuilderMock([product()], 1));
 
       await expect(service.syncFromAdmin(1)).resolves.toEqual({ productId: 1, cached: true });
       expect(store.get('products:version')).not.toBe('old');
+      expect(productsRepo.createQueryBuilder).toHaveBeenCalled();
     });
 
     it('reports cached=false when the product was deleted or deactivated', async () => {

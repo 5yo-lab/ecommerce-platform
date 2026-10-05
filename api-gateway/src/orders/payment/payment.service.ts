@@ -9,7 +9,6 @@ export interface PaymentResult {
 
 export const DECLINED_TOKEN = 'tok_fail';
 
-/** Mock payment provider: approves everything except the documented decline token. */
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);

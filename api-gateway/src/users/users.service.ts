@@ -40,7 +40,6 @@ export class UsersService {
     return this.users.save(user);
   }
 
-  /** Laravel stores bcrypt hashes with the `$2y$` prefix; it is algorithmically identical to `$2b$`. */
   verifyPassword(plain: string, hash: string): Promise<boolean> {
     return bcrypt.compare(plain, hash.replace(/^\$2y\$/, '$2b$'));
   }

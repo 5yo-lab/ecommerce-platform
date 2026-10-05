@@ -21,16 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => EnsureUserIsAdmin::class,
         ]);
 
-        // The JWT cookie is shared with the NestJS API, which cannot decrypt Laravel-encrypted cookies
         $middleware->encryptCookies(except: ['access_token']);
 
         $middleware->web(append: [
             JwtSessionMiddleware::class,
         ]);
-        // Must settle the session before `auth` decides between redirect-to-login and continuing
         $middleware->prependToPriorityList(AuthenticatesRequests::class, JwtSessionMiddleware::class);
 
-        // Nginx is the only entry point
         $middleware->trustProxies(at: '*');
     })
     ->withExceptions(function (Exceptions $exceptions): void {

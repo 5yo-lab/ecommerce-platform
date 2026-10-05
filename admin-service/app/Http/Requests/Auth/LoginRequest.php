@@ -15,7 +15,6 @@ use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
 {
-    /** JWT returned by the central user service, shared with the NestJS API via cookie. */
     public ?string $accessToken = null;
 
     public int $expiresIn = 0;
@@ -36,11 +35,6 @@ class LoginRequest extends FormRequest
         ];
     }
 
-    /**
-     * Authenticates against the central user service (NestJS) and starts a local admin session.
-     *
-     * @throws ValidationException
-     */
     public function authenticate(ApiGatewayClient $gateway): void
     {
         $this->ensureIsNotRateLimited();

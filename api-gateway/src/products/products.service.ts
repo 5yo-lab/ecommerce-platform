@@ -95,7 +95,6 @@ export class ProductsService {
     }
     qb.addOrderBy('product.id', 'DESC');
 
-    // Joins are to-one, so plain OFFSET/LIMIT is safe (no row multiplication)
     qb.offset((query.page - 1) * query.limit).limit(query.limit);
 
     const [rows, total] = await qb.getManyAndCount();
@@ -206,14 +205,11 @@ export class ProductsService {
     return this.loadForAdmin(product.id);
   }
 
-  /**
-   * Called by the Laravel admin webhook after a catalogue change. The shared database already holds
-   * the new data, so syncing means dropping stale cache entries and re-warming the changed product.
-   */
   async syncFromAdmin(productId: number): Promise<{ productId: number; cached: boolean }> {
     await this.invalidateCache();
     try {
       await this.findOne(productId);
+      await this.findAll(Object.assign(new QueryProductsDto(), { page: 1, limit: 15 }));
       return { productId, cached: true };
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -227,7 +223,6 @@ export class ProductsService {
     await this.cache.set(VERSION_KEY, String(Date.now()), VERSION_TTL_MS);
   }
 
-  /** All keys embed a version; bumping it invalidates every list/item entry without a key scan. */
   private async cacheKey(kind: 'list' | 'item', suffix: string): Promise<string> {
     let version = await this.cache.get<string>(VERSION_KEY);
     if (!version) {

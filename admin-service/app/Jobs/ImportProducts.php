@@ -14,10 +14,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-/**
- * Bulk upsert of products by SKU from a CSV in the same format as the export.
- * Each row commits on its own so one bad line does not discard the rest; the summary is cached for the admin.
- */
 class ImportProducts implements ShouldQueue
 {
     use Queueable;

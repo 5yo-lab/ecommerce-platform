@@ -48,10 +48,10 @@ Check progress with `docker compose ps -a`: the four setup services should show 
 
 | URL | What |
 | --- | --- |
-| http://localhost:8080 | Admin panel (Laravel) |
-| http://localhost:8080/api | Public API (NestJS) |
-| http://localhost:8080/api/docs | Swagger UI for the NestJS API |
-| http://localhost:8025 | Mailpit inbox (order confirmation emails) |
+| http://127.0.0.1:8080 | Admin panel (Laravel) |
+| http://127.0.0.1:8080/api | Public API (NestJS) |
+| http://127.0.0.1:8080/api/docs | Swagger UI for the NestJS API |
+| http://127.0.0.1:8025 | Mailpit inbox (order confirmation emails) |
 
 **Seeded accounts** (password `password` for all):
 
@@ -59,11 +59,18 @@ Check progress with `docker compose ps -a`: the four setup services should show 
 - `customer@example.com`: customer, can place orders through the API.
 - 10 more random customers; the seed also creates 4 root categories with 9 subcategories, 27 products and 60 orders spread over the last 60 days.
 
+### Quick demo
+
+1. **Admin panel** — http://127.0.0.1:8080/login → `admin@example.com` / `password` → dashboard, products, orders, reports.
+2. **Customer API** — http://127.0.0.1:8080/api/docs → `POST /api/auth/login` as customer → **Authorize** with the token → list products, place an order (`paymentToken: "tok_visa"`).
+3. **Email** — http://127.0.0.1:8025 → order confirmation for the new order.
+4. **Sync** — change a product price in the admin panel → reload `GET /api/products` in Swagger; the updated price appears within a few seconds.
+
 ### Running the tests
 
 ```bash
 docker compose exec api-gateway npm test            # NestJS unit tests (products + orders services)
-docker compose exec admin php artisan test          # Laravel feature tests (in-memory SQLite)
+docker compose exec -u www-data admin php artisan test   # Laravel feature tests (in-memory SQLite)
 ```
 
 ### Resetting
@@ -75,6 +82,8 @@ docker compose down -v && docker compose up -d      # wipes MySQL/Redis and rese
 ### Environment variables
 
 The root `.env` (copied from `.env.example`) feeds `docker-compose.yml`, which passes the values into every container. `admin-service/.env.example` and `api-gateway/.env.example` list each service's variables for running outside Docker.
+
+`PHP_OPCACHE_VALIDATE_TIMESTAMPS` defaults to `1` so PHP picks up file changes during local development. Set it to `0` for faster reads on bind-mounted volumes in production-like Docker runs.
 
 `JWT_SECRET` and `INTERNAL_API_KEY` must be identical for both services. Compose guarantees this because both read the same variable. `JWT_SECRET` must be at least 32 characters (HS256 key size); the gateway refuses to start otherwise.
 
@@ -99,14 +108,14 @@ The root `.env` (copied from `.env.example`) feeds `docker-compose.yml`, which p
 
 ## API documentation
 
-The complete, interactive reference for the NestJS API is Swagger at **http://localhost:8080/api/docs**: every DTO, validation rule and response code is described there and can be tried out after clicking **Authorize** with a token from `/api/auth/login`. A summary follows.
+The complete, interactive reference for the NestJS API is Swagger at **http://127.0.0.1:8080/api/docs**. Run `POST /api/auth/login`, copy `accessToken`, click **Authorize**, and try the endpoints. A summary follows.
 
 ### Authentication
 
-Send the JWT as `Authorization: Bearer <token>`, or rely on the HttpOnly `access_token` cookie that login sets. Both work on both services.
+For API calls, send `Authorization: Bearer <token>` or rely on the HttpOnly `access_token` cookie that login sets. Sign in to the admin panel at http://127.0.0.1:8080/login.
 
 ```bash
-curl -s -X POST http://localhost:8080/api/auth/login \
+curl -s -X POST http://127.0.0.1:8080/api/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"customer@example.com","password":"password"}'
 # {"accessToken":"eyJ...","tokenType":"Bearer","expiresIn":3600,"user":{...}}
@@ -132,7 +141,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 Place an order:
 
 ```bash
-curl -s -X POST http://localhost:8080/api/orders \
+curl -s -X POST http://127.0.0.1:8080/api/orders \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   -d '{"items":[{"productId":1,"quantity":2}],"paymentToken":"tok_visa"}'
 ```
@@ -162,7 +171,7 @@ Laravel API Resources, available to admins with the same JWT (Bearer header or c
 
 ### Admin panel
 
-Sign in at http://localhost:8080 as `admin@example.com`. The admin panel has these sections:
+Sign in at http://127.0.0.1:8080/login as `admin@example.com` / `password`. The admin panel has these sections:
 
 - **Dashboard:** revenue, order and customer metrics, orders by status, low-stock and top-selling products, recent orders.
 - **Products:** filters, image upload (a thumbnail is generated on the queue), trash and restore, CSV export, and CSV import. Import uses the export's columns, upserts by SKU on the queue, and shows a summary with per-line errors.
@@ -208,8 +217,8 @@ The job is unique per product (bursts collapse into one call) and retries with b
 
 NestJS is the central user service: it owns `users`, hashes passwords and is the only issuer of tokens. Tokens are HS256 with issuer `ecommerce-platform` and claims `sub`, `email`, `name` and `role`.
 
-- **Admin login:** the Breeze login form calls NestJS `/api/auth/login`, requires the `admin` role, starts a Laravel session and sets the same `access_token` cookie. Laravel excludes that cookie from encryption so NestJS can read it.
-- **Shared session:** `JwtSessionMiddleware` keeps both sides in step. An admin who logged in through the API is signed in to the panel automatically, and logging out on either side, or the token expiring, ends the admin session.
+- **Admin login:** the Breeze login form at `/login` calls NestJS `/api/auth/login`, requires the `admin` role, starts a Laravel session and sets the same `access_token` cookie. Laravel excludes that cookie from encryption so NestJS can read it. This is the primary way to open the admin panel.
+- **Shared session:** `JwtSessionMiddleware` keeps both sides in step — the same cookie works on `/api/*`, `/admin/api/*`, and the admin UI. Logging out on either side, or the token expiring, ends the session everywhere. API login also sets the cookie (so a programmatic client can share the session); Swagger **Authorize** alone does not.
 - **Admin JSON API:** `/admin/api/*` uses a stateless `jwt` guard, so the same token works with `Authorization: Bearer` as well.
 - **No duplicate flows:** public registration and email verification were removed from Breeze. Customers register through the API, and admins are created in user management.
 - **Password hashes:** Laravel writes `$2y$` bcrypt hashes and NestJS normalises them to `$2b$`, so users created on either side can sign in.

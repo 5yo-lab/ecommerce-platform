@@ -11,7 +11,6 @@ export class RequestLoggerMiddleware implements NestMiddleware {
 
     res.on('finish', () => {
       const durationMs = Number(process.hrtime.bigint() - startedAt) / 1e6;
-      // req.user is populated later by the auth guard, so read it when the response finishes
       const user = req.user as AuthUser | undefined;
       const line = `${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs.toFixed(1)}ms user=${user?.id ?? '-'} ip=${req.ip}`;
 

@@ -1,7 +1,6 @@
 import { Column, Entity, JoinColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import { Product } from './product.entity';
 
-/** Table owned by Laravel migrations; one stock row per product. */
 @Entity('inventory')
 export class Inventory {
   @PrimaryColumn({ name: 'product_id', type: 'bigint', unsigned: true })

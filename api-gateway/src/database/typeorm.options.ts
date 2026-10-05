@@ -21,7 +21,6 @@ export function buildTypeOrmOptions(
     timezone: 'Z',
     entities,
     migrations: [__dirname + '/migrations/*{.ts,.js}'],
-    // Laravel already uses the default `migrations` table in the shared database
     migrationsTableName: 'typeorm_migrations',
     synchronize: false,
   };
